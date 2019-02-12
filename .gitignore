@@ -1,0 +1,5 @@
+tasker.phar
+tasker.php
+vendor
+php_errors.log
+composer.lock

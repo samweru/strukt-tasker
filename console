@@ -1,0 +1,77 @@
+#!/usr/bin/php
+<?php
+
+require("vendor/autoload.php");
+
+use Strukt\Event\Event;
+use Strukt\Core\Map;
+use Strukt\Core\Collection;
+use Strukt\Fs;
+use Strukt\Process\Process;
+
+$_SERVER["map"] = new Map(new Collection());
+
+function task($name, Closure $func){
+
+	if($_SERVER["map"]->exists($name))
+		exit(sprintf("Command [%s] already exists!\n", $name));
+
+	$_SERVER["cmdList"][] = $name;
+    $_SERVER["map"]->set($name, Event::newEvent($func));
+}
+
+function writeln($line){
+
+    echo sprintf("%s\n", $line);
+}
+
+function run($cmd, $callback = null, $input = null){
+
+	$process = Process::run($cmd, $callback);
+
+	if(!is_null($input)){
+
+		$process->write($input);
+		$process->closeInput();
+	}
+
+	return array(
+
+		$process->read(),
+		$process->error(),
+	);
+}
+
+if(!Strukt\Fs::isFile("tasker.php"))
+	Strukt\Fs::touchWrite("tasker.php", 
+"<?php
+task('test', function(){
+    
+    writeln('Hello world');
+});");
+
+task("version", function(){
+
+	echo(sprintf("\n %s\n\n", "Tasker v1.0.0"));
+});
+
+task("list", function(){
+
+	exit(sprintf("\n%s\n\n", implode("\n", array_map(function($cmd){
+
+		return sprintf(" %s", $cmd);
+
+	}, $_SERVER["cmdList"]))));
+});
+
+include("tasker.php");
+
+$cmd = next($_SERVER["argv"]);
+
+if(!empty($cmd))
+	if(in_array($cmd, $_SERVER["cmdList"]))
+		$_SERVER["map"]->get($cmd)->exec();
+	else
+		exit("Tasker could not find command!\n");
+else
+	exit("No command indicated!\n");

@@ -1,0 +1,12 @@
+{
+    "main": "console",
+    "output": "tasker.phar",
+    "stub": true,
+    "finder": [
+        {
+            "name": "*.php",
+            "exclude": ["Tests"],
+            "in": "vendor"
+        }
+    ]
+}

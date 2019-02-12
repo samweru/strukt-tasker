@@ -1,0 +1,7 @@
+{
+    "require": {
+        "strukt/commons": "dev-master",
+        "strukt/fs": "dev-master",
+        "strukt/process": "dev-master"
+    }
+}
