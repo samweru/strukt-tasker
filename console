@@ -11,6 +11,48 @@ use Strukt\Process\Process;
 
 $_SERVER["map"] = new Map(new Collection());
 
+function watch($dir, \Closure $callback, $wait=1){
+
+    $currHash = null;
+    $prevHash = null;
+
+    $currPaths = [];
+    $prevPaths = [];
+
+    $evt = Strukt\Event\Event::newEvent($callback);
+
+    while(true){
+
+        clearstatcache();
+        sleep($wait);
+
+        if(Strukt\Fs::isFile($dir))
+            $files[] = $dir;
+        else if(Strukt\Fs::isPath($dir))
+            $files = Strukt\Fs::lsr($dir);
+        else
+            exit("Unknown file or path!");
+
+        while($path = current($files)){
+
+            $currPaths[$path] = md5_file($path);
+
+            if(empty(next($files)))
+                break;
+        }
+
+        $currHash = md5(implode("", $currPaths));
+
+        $diffPaths = array_keys(array_diff($currPaths, $prevPaths));
+
+        if($currHash!=$prevHash && !is_null($prevHash))
+            $evt->apply($diffPaths)->exec();
+
+        $prevHash = $currHash;
+        $prevPaths = $currPaths;
+    }
+}
+
 function task($name, Closure $func){
 
 	if($_SERVER["map"]->exists($name))
