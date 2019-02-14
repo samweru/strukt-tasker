@@ -1,7 +1,7 @@
 #!/usr/bin/php
 <?php
 
-require("vendor/autoload.php");
+require("packages/autoload.php");
 
 use Strukt\Event\Event;
 use Strukt\Core\Map;
@@ -10,6 +10,14 @@ use Strukt\Fs;
 use Strukt\Process\Process;
 
 $_SERVER["map"] = new Map(new Collection());
+
+function go($name){
+
+    if(!$_SERVER["map"]->exists($name))
+        exit(sprintf("Command %s does not exists!", $name));
+
+    return $_SERVER["map"]->get($name)->exec();   
+}
 
 function watch($dir, \Closure $callback, $wait=1){
 

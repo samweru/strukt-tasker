@@ -5,3 +5,4 @@ php_errors.log
 composer.lock
 file.txt
 test.php
+packages

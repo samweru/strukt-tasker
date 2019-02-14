@@ -3,5 +3,8 @@
         "strukt/commons": "dev-master",
         "strukt/fs": "dev-master",
         "strukt/process": "dev-master"
+    },
+    "config": {
+        "vendor-dir": "packages"
     }
 }
