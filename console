@@ -1,4 +1,4 @@
-#!/usr/bin/php
+#!/usr/bin/env php
 <?php
 
 require("packages/autoload.php");
@@ -102,7 +102,7 @@ task('test', function(){
 
 task("version", function(){
 
-	echo(sprintf("\n %s\n\n", "Tasker v1.0.0"));
+	echo(sprintf("\n %s\n\n", "Tasker v1.0.0-alpha"));
 });
 
 task("list", function(){

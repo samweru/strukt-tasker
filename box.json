@@ -1,11 +1,16 @@
 {
     "main": "console",
+    "algorithm": "SHA256",
     "output": "tasker.phar",
     "stub": true,
+    "compression" : "GZ",
     "finder": [
         {
             "name": "*.php",
-            "exclude": ["Tests"],
+            "exclude": [
+                "tests",
+                "fixture"
+            ],
             "in": "packages"
         }
     ]

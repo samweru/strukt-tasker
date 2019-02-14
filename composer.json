@@ -1,4 +1,15 @@
 {
+	"name": "strukt/tasker",
+    "description": "Simple php task manager",
+    "license": "MIT",
+    "type":"project",
+    "authors": [
+
+        {
+            "name": "Moderator",
+            "email": "pitsolu@gmail.com"
+        }
+    ],
     "require": {
         "strukt/commons": "dev-master",
         "strukt/fs": "dev-master",
