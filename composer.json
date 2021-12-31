@@ -18,5 +18,6 @@
     "config": {
         "vendor-dir": "packages"
     },
-    "minimum-stability":"dev"
+    "minimum-stability":"dev",
+    "bin":["console"]
 }
