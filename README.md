@@ -78,3 +78,37 @@ task("lsdir", function(){
 	});
 });
 ```
+
+## Boxing
+
+First you'll need to install [phive](https://github.com/phar-io/phive)
+
+```sh
+wget -O phive.phar https://phar.io/releases/phive.phar
+wget -O phive.phar.asc https://phar.io/releases/phive.phar.asc
+gpg --keyserver hkps://keys.openpgp.org --recv-keys 0x9D8A98B29B2D5D79
+gpg --verify phive.phar.asc phive.phar
+chmod +x phive.phar
+sudo mv phive.phar /usr/local/bin/phive
+```
+
+Then, install [Box](https://github.com/box-project/box) globally.
+
+```sh
+phive install humbug/box --force-accept-unsigned
+```
+
+..and update.
+
+```sh
+phive update humbug/box --force-accept-unsigned
+```
+
+..or install `Box` locally.
+
+```sh
+composer require --dev bamarni/composer-bin-plugin
+composer bin box require --dev humbug/box
+
+vendor/bin/box
+```
