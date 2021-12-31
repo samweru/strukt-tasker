@@ -3,7 +3,7 @@
 
 require("packages/autoload.php");
 
-use Strukt\Event\Event;
+use Strukt\Event;
 use Strukt\Core\Map;
 use Strukt\Core\Collection;
 use Strukt\Fs;
@@ -27,7 +27,7 @@ function watch($dir, \Closure $callback, $wait=1){
     $currPaths = [];
     $prevPaths = [];
 
-    $evt = Strukt\Event\Event::newEvent($callback);
+    $evt = Event::create($callback);
 
     while(true){
 
@@ -67,7 +67,7 @@ function task($name, Closure $func){
 		exit(sprintf("Command [%s] already exists!\n", $name));
 
 	$_SERVER["cmdList"][] = $name;
-    $_SERVER["map"]->set($name, Event::newEvent($func));
+    $_SERVER["map"]->set($name, Event::create($func));
 }
 
 function writeln($line){

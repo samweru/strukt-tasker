@@ -11,11 +11,11 @@
         }
     ],
     "require": {
-        "strukt/commons": "dev-master",
-        "strukt/fs": "dev-master",
-        "strukt/process": "dev-master"
+        "strukt/process": "v1.0.0-alpha",
+		"strukt/fs": "v1.0.0"
     },
     "config": {
         "vendor-dir": "packages"
-    }
+    },
+    "minimum-stability":"dev"
 }
