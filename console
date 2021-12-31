@@ -2,16 +2,15 @@
 <?php
 
 $loader = require("packages/autoload.php");
-$loader->add('Strukt', __DIR__.'/src/');
 
 use Strukt\Fs;
 use Strukt\Event;
 use Strukt\Core\Collection;
-use Strukt\Process\Process;
+use Strukt\Process;
 
 $tasks = new Collection();
 
-function event($name){
+function event(string $name){
 
     global $tasks;
 
@@ -21,9 +20,9 @@ function event($name){
     return Event::create($tasks->get($name));    
 }
 
-function go($name){
+function go(string $name, ...$args){
 
-    return event($name)->exec();   
+    return event($name)->applyArgs($args)->exec();   
 }
 
 function watch($dir, \Closure $callback, $wait=1){
@@ -85,7 +84,9 @@ function writeln($line){
 
 function run(string $cmd, \Closure $callback = null, $input = null){
 
-    $process = Process::run($cmd, $callback);
+    $processes = Process::run([$cmd], $callback);
+
+    $process = $processes->current();
 
     if(!is_null($input)){
 
@@ -135,9 +136,14 @@ task("list", function(){
 
         $doc = $rfunc->getDocComment();
 
-        $doc = Strukt\Type\Str::create(strval($doc))->replace(["/**","* ", "*/"], "");
+        if(!empty($doc)){
 
-        return sprintf(" %s %s", str_pad($cmd, 15), trim($doc));
+            $doc = Strukt\Type\Str::create(strval($doc))->replace(["/**","* ", "*/"], "");
+
+            return sprintf(" %s %s", str_pad($cmd, 15), trim($doc));
+        }
+
+        return sprintf(" %s", $cmd);
 
     }, $tasks->getKeys()))));
 });
