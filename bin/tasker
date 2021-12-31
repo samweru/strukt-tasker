@@ -1,0 +1,183 @@
+#!/usr/bin/env php
+<?php
+
+$loader = require("packages/autoload.php");
+
+use Strukt\Fs;
+use Strukt\Event;
+use Strukt\Core\Collection;
+use Strukt\Process;
+
+$tasks = new Collection();
+
+function event(string $name){
+
+    global $tasks;
+
+    if(!$tasks->exists($name))
+        exit(sprintf("Task %s does not exists!", $name));
+
+    return Event::create($tasks->get($name));    
+}
+
+function go(string $name, ...$args){
+
+    return event($name)->applyArgs($args)->exec();   
+}
+
+function watch($dir, \Closure $callback, $wait=1){
+
+    $currHash = null;
+    $prevHash = null;
+
+    $currPaths = [];
+    $prevPaths = [];
+
+    $evt = Event::create($callback);
+
+    while(true){
+
+        clearstatcache();
+        sleep($wait);
+
+        if(Strukt\Fs::isFile($dir))
+            $files[] = $dir;
+        else if(Strukt\Fs::isPath($dir))
+            $files = Strukt\Fs::lsr($dir);
+        else
+            exit("Unknown file or path!");
+
+        while($path = current($files)){
+
+            $currPaths[$path] = md5_file($path);
+
+            if(empty(next($files)))
+                break;
+        }
+
+        $currHash = md5(implode("", $currPaths));
+
+        $diffPaths = array_keys(array_diff($currPaths, $prevPaths));
+
+        if($currHash!=$prevHash && !is_null($prevHash))
+            $evt->apply($diffPaths)->exec();
+
+        $prevHash = $currHash;
+        $prevPaths = $currPaths;
+    }
+}
+
+function task(string $name, Closure $func){
+
+    global $tasks;
+
+    if($tasks->exists($name))
+        exit(sprintf("Task [%s] already exists!\n", $name));
+
+    $tasks->set($name, $func);
+}
+
+function writeln($line){
+
+    echo sprintf("%s\n", $line);
+}
+
+function run(string $cmd, \Closure $callback = null, $input = null){
+
+    $processes = Process::run([$cmd], $callback);
+
+    $process = $processes->current();
+
+    if(!is_null($input)){
+
+        $process->write($input);
+        $process->closeInput();
+    }
+
+    return array(
+
+        $process->read(),
+        $process->error(),
+    );
+}
+
+if(!Strukt\Fs::isFile("tasker.php"))
+    Strukt\Fs::touchWrite("tasker.php", 
+"<?php
+
+/**
+ * Sample task
+ */
+task('test', function(){
+    
+    writeln('Hello world');
+});");
+
+/**
+ * Tasker version
+ */
+task("version", function(){
+
+    echo(sprintf("\n %s\n\n", "Tasker v1.0.0-alpha"));
+});
+
+/**
+ * List commands
+ */
+task("list", function(){
+
+    global $tasks;
+
+    exit(sprintf("\n%s\n\n", implode("\n", array_map(function($cmd){
+
+        global $tasks;
+
+        $rfunc = Strukt\Ref::func($tasks->get($cmd))->getRef();
+
+        $doc = $rfunc->getDocComment();
+
+        if(!empty($doc)){
+
+            $doc = Strukt\Type\Str::create(strval($doc))->replace(["/**","* ", "*/"], "");
+
+            return sprintf(" %s %s", str_pad($cmd, 15), trim($doc));
+        }
+
+        return sprintf(" %s", $cmd);
+
+    }, $tasks->getKeys()))));
+});
+
+include("tasker.php");
+
+$cmd = next($_SERVER["argv"]);
+
+if(!empty($cmd)){
+
+    if($tasks->exists($cmd)){
+
+        $task = $tasks->get($cmd);
+
+        $rfunc = Strukt\Ref::func($task)->getRef();
+        $nfunc_params = $rfunc->getNumberOfParameters();
+
+        $event = event($cmd);
+
+        if($nfunc_params > 0){
+
+            $nparams = count($_SERVER["argv"]) - $nfunc_params;
+
+            $args = array_splice($_SERVER["argv"], $nparams);
+
+            $event = $event->applyArgs($args);
+        }
+
+        $event->exec();
+
+        exit();
+    }
+    
+    exit("Tasker could not find command!\n");
+}
+
+exit("No command indicated!\n");
