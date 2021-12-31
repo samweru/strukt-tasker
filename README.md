@@ -22,14 +22,17 @@ How to list commands:
 ```sh
 $ tasker list
 
- version
- list
- test
+ version         Tasker version
+ list            List commands
+ test            Sample task
 ```
 Below is sample `tasker.php`
 
 ```php
 
+/**
+ * Show today's date
+ */
 task('date', function(){
 
 	$date = new \DateTime();
@@ -37,27 +40,39 @@ task('date', function(){
 	echo(sprintf("Now: %s\n", $date->format("Y-m-d H:i:s")));
 });
 
-task('echo', function(){
+/**
+ * Say hello to someone
+ */
+task("hello", function(string $name){
 
-	go('test');
+    writeln(sprintf("Hello %s!", $name));
 });
 
+/**
+ * Say hello to the world
+ */
 task('test', function(){
 
-    writeln('Hello world');
+    go("hello", " World!");
 });
 
+/**
+ * Watch changes in javascript files
+ */ 
 task("watch:js", function(){
 
 	watch("app/js", function($files){
 
-		print_r($files);
+		print_r(implode("\n", $files));
 	});
 });
 
-task("apt:update", function(){
+/**
+ * List directories
+ */
+task("lsdir", function(){
 
-	list($output, $error) = run("apt update", function($output){
+	list($output, $error) = run("ls -al", function($output){
 
 		echo $output;
 	});
