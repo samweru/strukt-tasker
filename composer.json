@@ -12,7 +12,8 @@
     ],
     "require": {
         "strukt/process": "v1.0.0-alpha",
-		"strukt/fs": "v1.0.0"
+		"strukt/fs": "v1.0.0",
+		"strukt/generator": "v1.0.0-alpha"
     },
     "config": {
         "vendor-dir": "packages"

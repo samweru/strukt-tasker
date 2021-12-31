@@ -1,22 +1,29 @@
 #!/usr/bin/env php
 <?php
 
-require("packages/autoload.php");
+$loader = require("packages/autoload.php");
+$loader->add('Strukt', __DIR__.'/src/');
 
-use Strukt\Event;
-use Strukt\Core\Map;
-use Strukt\Core\Collection;
 use Strukt\Fs;
+use Strukt\Event;
+use Strukt\Core\Collection;
 use Strukt\Process\Process;
 
-$_SERVER["map"] = new Map(new Collection());
+$tasks = new Collection();
+
+function event($name){
+
+    global $tasks;
+
+    if(!$tasks->exists($name))
+        exit(sprintf("Task %s does not exists!", $name));
+
+    return Event::create($tasks->get($name));    
+}
 
 function go($name){
 
-    if(!$_SERVER["map"]->exists($name))
-        exit(sprintf("Command %s does not exists!", $name));
-
-    return $_SERVER["map"]->get($name)->exec();   
+    return event($name)->exec();   
 }
 
 function watch($dir, \Closure $callback, $wait=1){
@@ -61,13 +68,14 @@ function watch($dir, \Closure $callback, $wait=1){
     }
 }
 
-function task($name, Closure $func){
+function task(string $name, Closure $func){
 
-	if($_SERVER["map"]->exists($name))
-		exit(sprintf("Command [%s] already exists!\n", $name));
+    global $tasks;
 
-	$_SERVER["cmdList"][] = $name;
-    $_SERVER["map"]->set($name, Event::create($func));
+    if($tasks->exists($name))
+        exit(sprintf("Task [%s] already exists!\n", $name));
+
+    $tasks->set($name, $func);
 }
 
 function writeln($line){
@@ -75,53 +83,95 @@ function writeln($line){
     echo sprintf("%s\n", $line);
 }
 
-function run($cmd, $callback = null, $input = null){
+function run(string $cmd, \Closure $callback = null, $input = null){
 
-	$process = Process::run($cmd, $callback);
+    $process = Process::run($cmd, $callback);
 
-	if(!is_null($input)){
+    if(!is_null($input)){
 
-		$process->write($input);
-		$process->closeInput();
-	}
+        $process->write($input);
+        $process->closeInput();
+    }
 
-	return array(
+    return array(
 
-		$process->read(),
-		$process->error(),
-	);
+        $process->read(),
+        $process->error(),
+    );
 }
 
 if(!Strukt\Fs::isFile("tasker.php"))
-	Strukt\Fs::touchWrite("tasker.php", 
+    Strukt\Fs::touchWrite("tasker.php", 
 "<?php
+
+/**
+ * Sample task
+ */
 task('test', function(){
     
     writeln('Hello world');
 });");
 
+/**
+ * Tasker version
+ */
 task("version", function(){
 
-	echo(sprintf("\n %s\n\n", "Tasker v1.0.0-alpha"));
+    echo(sprintf("\n %s\n\n", "Tasker v1.0.0-alpha"));
 });
 
+/**
+ * List commands
+ */
 task("list", function(){
 
-	exit(sprintf("\n%s\n\n", implode("\n", array_map(function($cmd){
+    global $tasks;
 
-		return sprintf(" %s", $cmd);
+    exit(sprintf("\n%s\n\n", implode("\n", array_map(function($cmd){
 
-	}, $_SERVER["cmdList"]))));
+        global $tasks;
+
+        $rfunc = Strukt\Ref::func($tasks->get($cmd))->getRef();
+
+        $doc = $rfunc->getDocComment();
+
+        $doc = Strukt\Type\Str::create(strval($doc))->replace(["/**","* ", "*/"], "");
+
+        return sprintf(" %s %s", str_pad($cmd, 15), trim($doc));
+
+    }, $tasks->getKeys()))));
 });
 
 include("tasker.php");
 
 $cmd = next($_SERVER["argv"]);
 
-if(!empty($cmd))
-	if(in_array($cmd, $_SERVER["cmdList"]))
-		$_SERVER["map"]->get($cmd)->exec();
-	else
-		exit("Tasker could not find command!\n");
-else
-	exit("No command indicated!\n");
+if(!empty($cmd)){
+
+    if($tasks->exists($cmd)){
+
+        $task = $tasks->get($cmd);
+
+        $rfunc = Strukt\Ref::func($task)->getRef();
+        $nfunc_params = $rfunc->getNumberOfParameters();
+
+        $event = event($cmd);
+
+        if($nfunc_params > 0){
+
+            $nparams = count($_SERVER["argv"]) - $nfunc_params;
+
+            $args = array_splice($_SERVER["argv"], $nparams);
+
+            $event = $event->applyArgs($args);
+        }
+
+        $event->exec();
+
+        exit();
+    }
+    
+    exit("Tasker could not find command!\n");
+}
+
+exit("No command indicated!\n");
