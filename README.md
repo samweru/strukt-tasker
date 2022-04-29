@@ -6,7 +6,7 @@ A simple task manager for php.
 ## Getting started
 
 ```sh
-wget https://github.com/pitsolu/strukt-tasker/releases/download/v1.0.0-alpha/tasker.phar #download
+wget https://github.com/samweru/strukt-tasker/releases/download/v1.0.0-alpha/tasker.phar #download
 chmod a+x tasker.phar #make executable
 mv tasker.phar tasker #rename
 ```
@@ -111,4 +111,10 @@ composer require --dev bamarni/composer-bin-plugin
 composer bin box require --dev humbug/box
 
 vendor/bin/box
+```
+
+..or 
+
+```sh
+$ curl -LSs https://box-project.github.io/box2/installer.php | php
 ```
