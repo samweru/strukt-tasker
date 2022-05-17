@@ -161,4 +161,3 @@ if(!empty($cmd)){
 }
 
 exit("No command indicated!\n");
-....
