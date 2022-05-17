@@ -5,24 +5,21 @@ $loader = require("packages/autoload.php");
 
 use Strukt\Fs;
 use Strukt\Event;
-use Strukt\Core\Collection;
+use Strukt\Ref;
 use Strukt\Process;
-
-$tasks = new Collection();
+use Strukt\Cmd;
 
 function event(string $name){
 
-    global $tasks;
-
-    if(!$tasks->exists($name))
+    if(!Cmd::exists($name))
         exit(sprintf("Task %s does not exists!", $name));
 
-    return Event::create($tasks->get($name));    
+    return Event::create(Cmd::get($name));    
 }
 
 function go(string $name, ...$args){
 
-    return event($name)->applyArgs($args)->exec();   
+    return Cmd::exec($name, $args);  
 }
 
 function watch($dir, \Closure $callback, $wait=1){
@@ -40,10 +37,10 @@ function watch($dir, \Closure $callback, $wait=1){
         clearstatcache();
         sleep($wait);
 
-        if(Strukt\Fs::isFile($dir))
+        if(Fs::isFile($dir))
             $files[] = $dir;
-        else if(Strukt\Fs::isPath($dir))
-            $files = Strukt\Fs::lsr($dir);
+        else if(Fs::isPath($dir))
+            $files = Fs::lsr($dir);
         else
             exit("Unknown file or path!");
 
@@ -69,12 +66,10 @@ function watch($dir, \Closure $callback, $wait=1){
 
 function task(string $name, Closure $func){
 
-    global $tasks;
-
-    if($tasks->exists($name))
+    if(Cmd::exists($name))
         exit(sprintf("Task [%s] already exists!\n", $name));
 
-    $tasks->set($name, $func);
+    Cmd::add($name, $func);
 }
 
 function writeln($line){
@@ -101,8 +96,8 @@ function run(string $cmd, \Closure $callback = null, $input = null){
     );
 }
 
-if(!Strukt\Fs::isFile("tasker.php"))
-    Strukt\Fs::touchWrite("tasker.php", 
+if(!Fs::isFile("tasker.php"))
+    Fs::touchWrite("tasker.php", 
 "<?php
 
 /**
@@ -126,26 +121,11 @@ task("version", function(){
  */
 task("list", function(){
 
-    global $tasks;
+    exit(sprintf("\n%s\n\n", implode("\n", array_map(function($name){
 
-    exit(sprintf("\n%s\n\n", implode("\n", array_map(function($cmd){
+        return Cmd::doc($name);
 
-        global $tasks;
-
-        $rfunc = Strukt\Ref::func($tasks->get($cmd))->getRef();
-
-        $doc = $rfunc->getDocComment();
-
-        if(!empty($doc)){
-
-            $doc = Strukt\Type\Str::create(strval($doc))->replace(["/**","* ", "*/"], "");
-
-            return sprintf(" %s %s", str_pad($cmd, 15), trim($doc));
-        }
-
-        return sprintf(" %s", $cmd);
-
-    }, $tasks->getKeys()))));
+    }, Cmd::ls()))));
 });
 
 include("tasker.php");
@@ -154,11 +134,11 @@ $cmd = next($_SERVER["argv"]);
 
 if(!empty($cmd)){
 
-    if($tasks->exists($cmd)){
+    if(Cmd::exists($cmd)){
 
-        $task = $tasks->get($cmd);
+        $task = Cmd::get($cmd);
 
-        $rfunc = Strukt\Ref::func($task)->getRef();
+        $rfunc = Ref::func($task)->getRef();
         $nfunc_params = $rfunc->getNumberOfParameters();
 
         $event = event($cmd);

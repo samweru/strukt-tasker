@@ -63,7 +63,11 @@ task("watch:js", function(){
 
 	watch("app/js", function($files){
 
-		print_r(implode("\n", $files));
+		$changes = [];
+		foreach($files as $file)
+			$changes[] = sprintf("%s\n", $file);
+
+		print_r(implode("\n", $changes));
 	});
 });
 

@@ -6,14 +6,14 @@
     "authors": [
 
         {
-            "name": "Moderator",
+            "name": "Samuel Weru",
             "email": "pitsolu@gmail.com"
         }
     ],
     "require": {
-        "strukt/process": "v1.0.0-alpha",
-		"strukt/fs": "v1.0.0",
-		"strukt/generator": "v1.0.0-alpha"
+        "strukt/process": "dev-master",
+        "strukt/event": "dev-master",
+		"strukt/fs": "v1.0.0"
     },
     "config": {
         "vendor-dir": "packages"
