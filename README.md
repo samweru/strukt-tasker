@@ -6,7 +6,7 @@ A simple task manager for php.
 ## Getting started
 
 ```sh
-wget https://github.com/samweru/strukt-tasker/releases/download/v1.0.0-alpha/tasker.phar #download
+wget https://github.com/samweru/strukt-tasker/releases/download/v1.0.1-alpha/tasker.phar #download
 chmod a+x tasker.phar #make executable
 mv tasker.phar tasker #rename
 ```
