@@ -113,7 +113,7 @@ task('test', function(){
  */
 task("version", function(){
 
-    echo(sprintf("\n %s\n\n", "Tasker v1.0.0-alpha"));
+    echo(sprintf("\n %s\n\n", "Tasker v1.0.1-alpha"));
 });
 
 /**
