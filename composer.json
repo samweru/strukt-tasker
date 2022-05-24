@@ -11,8 +11,8 @@
         }
     ],
     "require": {
-        "strukt/process": "dev-master",
-        "strukt/event": "dev-master",
+        "strukt/process": "v1.0.1-alpha",
+        "strukt/event": "v1.0.0-alpha",
 		"strukt/fs": "v1.0.0"
     },
     "config": {
